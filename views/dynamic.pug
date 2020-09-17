@@ -1,0 +1,14 @@
+html
+head
+    title=name
+body
+    h1=name
+    //- to insert passed variables in between text of a tag, we use #{variableName} syntax;
+    h2 Greetings from #{name} 
+
+    //- we can also used condition statement and looping construct in pug ;
+    if(user)
+    h3 Hii, #{user.name} and your age is #{user.age}
+    //- else
+    //- a(href = '/sign_up') Sign up
+    a(href = url) URL
