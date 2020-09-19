@@ -17,23 +17,44 @@ const middlewareExapmle = require('./middlewareExample');
 const cookieParser = require('cookie-parser');
 //------------------------
 
+//if we can use session than we can use both session and cookies as a middleware and cookies is defiend above and session is below :---
+const session = require('express-session');
+//-----------------------
+
 app.use(cookieParser());
+app.use(session({secret: 'Shh, its a secret!!!'}));
+
+
+//whenever we make a request from the same client again, we will have their session information stored with us(given that the server was not started). we can add more properties to the session object.In the following example, we will create a view counter for a client.
+
+app.get('/', (req,res) =>{
+    if(req.session.page_views){
+        req.session.page_views++;
+        res.send('You visited this page ' + req.session.page_views + 'times');
+    }else{
+        req.session.page_views = 1;
+        res.send('Welcome to this page for the first time!!!');
+    }
+})
+
+
+
 
 //cookie-parser parses Cookie header and populates req.cookies with an object keyed by the cookie names.To set a new cookie,let us define a new route in your express app
-app.get("/", (req, res) =>{
-    res.cookie('name', 'express').send('cookie set'); // it sets name express
+// app.get("/", (req, res) =>{
+//     res.cookie('name', 'express').send('cookie set'); // it sets name express
 
-    //we can add cookies that expire. to add a cookie that expires, just pass an an object with property 'expire' set to the time when you want it to expire.For example:
+//     //we can add cookies that expire. to add a cookie that expires, just pass an an object with property 'expire' set to the time when you want it to expire.For example:
 
-    //Expires after 360000 ms from the time it is set..
-    res.cookie(name, 'value', {expire: 360000 + Date.now()});
-});
+//     //Expires after 360000 ms from the time it is set..
+//     res.cookie(name, 'value', {expire: 360000 + Date.now()});
+// });
 
 //to delete a cookie, use the clearCookie function. For example, if you need to clear a cookie named foo, use the following codes 
-app.get('/clear_cookie_foo', (req, res) =>{
-    res.clearCookie('foo');
-    res.send('cookie foo cleared');
-})
+// app.get('/clear_cookie_foo', (req, res) =>{
+//     res.clearCookie('foo');
+//     res.send('cookie foo cleared');
+// })
 
 // we our app is connect to the database than we can create a new model. this model can actas a collection of a database. and it should be define before defining any route:---
 // const personSchema = mongoose.Schema(
