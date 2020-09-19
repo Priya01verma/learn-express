@@ -21,21 +21,119 @@ const cookieParser = require('cookie-parser');
 const session = require('express-session');
 //-----------------------
 
+const router = require('./things.js');
+
+
 app.use(cookieParser());
 app.use(session({secret: 'Shh, its a secret!!!'}));
 
 
+//when pug is installed than we can add this lines of codes
+app.set('view engine', 'pug');
+app.set('views', './views');
+
+
+//for parsing application/json
+app.use(bodyParser.json());
+
+//for parsing application/xwww-
+app.use(bodyParser.urlencoded({extended: true}));
+//form-urlencoded
+
+// for parsing multipart/form-data
+app.use(upload.array());
+app.use(express.static('public'));
+
+let Users = [];
+
+
+
+//For authentication we can create signup form
+app.get('/signup', (req, res) =>{
+    res.render('signup');
+});
+
+app.post('/signup', (req, res) =>{
+    if(!req.body.id || !req.body.password){
+        res.status('400');
+        res.send('Invalid Details!');
+    }else{
+        Users.filter((user)=>{
+            if(user.id === req.body.id){
+                res.render('signup',{
+                    message: 'User Already Exists! Login or choose another user id'
+                });
+                let newUser = {id: req.body.id, password: req.body.password};
+                Users.push(newUser);
+                req.session.user = newUser;
+                res.redirect('/protected_page');
+            }
+        })
+    }
+});
+
+function checkSignIn(req, res){
+    if(req.session.user){
+        next(); // If session exists, proceed to page
+    }else{
+        let err = new Error('Not logged in!');
+        console.log(req.session.user);
+        next(err);
+    }
+}
+
+app.get('/protected_page', checkSignIn, function(req, res){
+    res.render('protected_page', {
+        id: req.session.user.id
+    })
+});
+
+
+app.get('/login', (req,res) =>{
+    res.render('login');
+});
+
+app.post('/login', function(req, res){
+    console.log(Users);
+
+    if(!req.body.id || !req.body.password){
+        res.render('login',{ message :  "please enter both id and password"})
+    }else{
+        Users.filter((user) =>{
+            if(user.id === req.body.id && user.password === req.body.password){
+                req.session.user = user;
+                res.redirect('/protected_page');
+            }
+        });
+        res.render('login', {message : 'Invalid credentials@'})
+    }
+});
+
+app.get('/logout', (req, res) =>{
+    req.session.destroy(() =>{
+        console.log("user logged out.");
+    });
+    res.redirect('login')
+})
+
+app.use('/protected_page', (err, req, res, next) =>{
+    console.log(err);
+    //User should be authenticated! Redirect him to log in.
+    res.redirect('login');
+});
+
+
 //whenever we make a request from the same client again, we will have their session information stored with us(given that the server was not started). we can add more properties to the session object.In the following example, we will create a view counter for a client.
 
-app.get('/', (req,res) =>{
-    if(req.session.page_views){
-        req.session.page_views++;
-        res.send('You visited this page ' + req.session.page_views + 'times');
-    }else{
-        req.session.page_views = 1;
-        res.send('Welcome to this page for the first time!!!');
-    }
-})
+// app.get('/', (req,res) =>{
+//     if(req.session.page_views){
+//         req.session.page_views++;
+//         res.send('You visited this page ' + req.session.page_views + 'times');
+//     }else{
+//         req.session.page_views = 1;
+//         res.send('Welcome to this page for the first time!!!');
+//     }
+// })
 
 
 
@@ -67,10 +165,6 @@ app.get('/', (req,res) =>{
 
 // const Person = mongoose.model("Person", personSchema);
 
-//when pug is installed than we can add this lines of codes
-// app.set('view engine', 'pug');
-// app.set('views', './views');
-
 
 
 // app.get("/person", (req, res) =>{
@@ -81,12 +175,6 @@ app.get('/', (req,res) =>{
 //     res.render('form');
 // });
 
-//for parsing application/json
-//app.use(bodyParser.json());
-
-//for parsing application/xwww-
-// app.use(bodyParser.urlencoded({extended: true}));
-//form-urlencoded
 
 
 // app.post('/person', (req,res) =>{
@@ -118,10 +206,6 @@ app.get('/', (req,res) =>{
 //         })
 //     }
 // })
-
-// for parsing multipart/form-data
-// app.use(upload.array());
-// app.use(express.static('public'));
 
 // app.post('/', (req, res)=>{
 //     console.log(req.body);
